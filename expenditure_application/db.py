@@ -5,6 +5,7 @@ import os
 import sqlite3
 import logging
 import config
+from collection import DictObject
 
 
 LOGGER = logging.getLogger(__name__)
@@ -12,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 
 def get_connection():
     def dict_factory(cursor, row):
-        d = {}
+        d = DictObject()
         for idx, col in enumerate(cursor.description):
             d[col[0]] = row[idx]
         return d

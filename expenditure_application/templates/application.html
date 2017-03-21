@@ -1,0 +1,89 @@
+<style>
+    table {
+        border: 1px solid grey;
+    }
+    table th {
+        border: 1px solid grey;
+    }
+    table td {
+        border: 1px solid grey;
+    }
+    p.approved {
+        color: green;
+    }
+    p.rejected {
+        color: red;
+    }
+</style>
+<div id="application">
+    {% if application.approved_at %}
+        <p class="approved">This application has been approved at {{ application.approved_at }}</p>
+    {% endif %}
+    {% if application.rejected_at %}
+        <p class="rejected">This application has been rejected at {{ application.rejected_at }}</p>
+    {% endif %}
+    <table>
+        <caption>Expenditure Application #{{ application.id }}</caption>
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>Subtotal</th>
+            <th>Freight</th>
+            <th>Total</th>
+            <th>Apply Date</th>
+            <th>Comment</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>{{ application.title }}</td>
+            <td>{{ application.subtotal }}</td>
+            <td>{{ application.freight }}</td>
+            <td>{{ application.total }}</td>
+            <td>{{ application.created_at }}</td>
+            <td>{{ application.comment }}</td>
+        </tr>
+        </tbody>
+    </table>
+    <table>
+        <caption>Items</caption>
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Discount</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in application.line_items %}
+            <tr>
+                <td>
+                    {% if item.link %}
+                        <a href="{{ item.link }}" target="_blank">{{ item.title }}</a>
+                    {% else %}
+                        {{ item.title }}
+                    {% endif %}
+                </td>
+                <td>{{ item.price }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.discount }}</td>
+                <td>{{ item.total }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% if not application.approved_at and not application.rejected_at %}
+    <hr/>
+    <form action="/applications/{{ application.id }}/approval">
+        <textarea name="ps" placeholder="P.S."></textarea>
+        <button type="submit">Approve</button>
+    </form>
+    <hr/>
+    <form action="/applications/{{ application.id }}/rejection">
+        <textarea name="ps" placeholder="rejection reason"></textarea>
+        <button type="submit">Reject</button>
+    </form>
+{% endif %}
+</div>

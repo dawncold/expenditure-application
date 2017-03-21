@@ -1,0 +1,60 @@
+<style>
+    span.approved {
+        color: green;
+    }
+    span.rejected {
+        color: red;
+    }
+    span.waiting {
+        color: grey;
+    }
+    table {
+        border: 1px solid grey;
+    }
+    table th {
+        border: 1px solid grey;
+    }
+    table td {
+        border: 1px solid grey;
+    }
+</style>
+<table>
+    <thead>
+    <tr>
+        <th>No.</th>
+        <th>Title</th>
+        <th>Subtotal</th>
+        <th>Freight</th>
+        <th>Total</th>
+        <th>Apply Date</th>
+        <th>Comment</th>
+        <th>State</th>
+        <th>P.S.</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for application in applications %}
+    <tr>
+        <td>#{{ application.id }}</td>
+        <td>{{ application.title }}</td>
+        <td>{{ application.subtotal }}</td>
+        <td>{{ application.freight }}</td>
+        <td>{{ application.total }}</td>
+        <td>{{ application.created_at }}</td>
+        <td>{{ application.comment or 'N/A' }}</td>
+        <td>
+            {% if application.approved_at %}
+                <span class="approved">APPROVED</span>
+            {% elif application.rejected_at %}
+                <span class="rejected">REJECTED</span>
+            {% else %}
+                <span class="waiting">WAITING</span>
+            {% endif %}
+        </td>
+        <td>{{ application.ps or 'N/A' }}</td>
+        <td><a href="/applications/{{ application.id }}">Details</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
