@@ -4,6 +4,7 @@ import sys
 import os
 import sqlite3
 import logging
+import contextlib
 import config
 from collection import DictObject
 
@@ -39,8 +40,11 @@ if __name__ == '__main__':
     with open(migration_file) as f:
         migration_script = f.read()
     LOGGER.debug(migration_script)
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.executescript(migration_script)
-    conn.commit()
-    conn.close()
+    with contextlib.closing(get_connection()) as conn:
+        cur = conn.cursor()
+        try:
+            cur.executescript(migration_script)
+        except:
+            conn.rollback()
+        else:
+            conn.commit()

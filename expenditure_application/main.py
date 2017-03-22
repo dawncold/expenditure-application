@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, print_function, division
 import time
 import logging
+import contextlib
 from decimal import Decimal, ROUND_FLOOR
 import tornado.web
 import db
@@ -38,52 +39,52 @@ class ApplicationRejectionHandler(tornado.web.RequestHandler):
 
 
 def new_application(title, freight, items, comment=None):
-    conn = db.get_connection()
-    cur = db.get_cursor(conn)
-    subtotal = sum(item.total for item in items)
-    for item in items:
-        item.total = item.price * item.quantity - item.discount
-    try:
-        cur.execute('''
-            INSERT INTO expenditure_application(title, subtotal, freight, comment, created_at)
-            VALUES (?, ?, ?, ?, ?)
-            ''', (title, subtotal, int(freight), comment, int(time.time())))
-        application_id = cur.lastrowid
-        values = tuple((application_id, item.title, item.link, item.price, item.quantity, item.discount, item.total) for item in items)
-        cur.executemany('''
-            INSERT INTO expenditure_application_item(application_id, title, link, price, quantity, discount, total)
-            VALUES(?, ?, ?, ?, ?, ?, ?)
-            ''', values)
-    except Exception as e:
-        LOGGER.exception('Got exception when create application: {}'.format(e.message))
-        conn.rollback()
-    else:
-        LOGGER.info('Create application successfully!')
-        conn.commit()
+    with contextlib.closing(db.get_connection()) as conn:
+        cur = db.get_cursor(conn)
+        subtotal = sum(item.total for item in items)
+        for item in items:
+            item.total = item.price * item.quantity - item.discount
+        try:
+            cur.execute('''
+                INSERT INTO expenditure_application(title, subtotal, freight, comment, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                ''', (title, subtotal, int(freight), comment, int(time.time())))
+            application_id = cur.lastrowid
+            values = tuple((application_id, item.title, item.link, item.price, item.quantity, item.discount, item.total) for item in items)
+            cur.executemany('''
+                INSERT INTO expenditure_application_item(application_id, title, link, price, quantity, discount, total)
+                VALUES(?, ?, ?, ?, ?, ?, ?)
+                ''', values)
+        except Exception as e:
+            LOGGER.exception('Got exception when create application: {}'.format(e.message))
+            conn.rollback()
+        else:
+            LOGGER.info('Create application successfully!')
+            conn.commit()
 
 
 def list_applications():
-    conn = db.get_connection()
-    cur = db.get_cursor(conn)
-    applications = cur.execute('SELECT * FROM expenditure_application').fetchall()
-    application_items = cur.execute('SELECT * FROM expenditure_application_item').fetchall()
-    application_id2items = {}
-    for item in application_items:
-        application_id2items.setdefault(item.application_id, []).append(item)
-    for application in applications:
-        application.line_items = application_id2items.get(application.id, [])
-    normalize_applications(applications)
-    return applications
+    with contextlib.closing(db.get_connection()) as conn:
+        cur = db.get_cursor(conn)
+        applications = cur.execute('SELECT * FROM expenditure_application').fetchall()
+        application_items = cur.execute('SELECT * FROM expenditure_application_item').fetchall()
+        application_id2items = {}
+        for item in application_items:
+            application_id2items.setdefault(item.application_id, []).append(item)
+        for application in applications:
+            application.line_items = application_id2items.get(application.id, [])
+        normalize_applications(applications)
+        return applications
 
 
 def get_application(application_id):
-    conn = db.get_connection()
-    cur = conn.cursor()
-    application = cur.execute('SELECT * FROM expenditure_application WHERE id=?', (application_id, )).fetchone()
-    if application:
-        application.line_items = cur.execute('SELECT * FROM expenditure_application_item WHERE application_id=?', (application_id, )).fetchall()
-        normalize_applications([application])
-    return application
+    with contextlib.closing(db.get_connection()) as conn:
+        cur = conn.cursor()
+        application = cur.execute('SELECT * FROM expenditure_application WHERE id=?', (application_id, )).fetchone()
+        if application:
+            application.line_items = cur.execute('SELECT * FROM expenditure_application_item WHERE application_id=?', (application_id, )).fetchall()
+            normalize_applications([application])
+        return application
 
 
 def normalize_applications(applications):
@@ -99,19 +100,19 @@ def normalize_applications(applications):
 
 
 def approve_application(application_id):
-    conn = db.get_connection()
-    cur = conn.cursor()
-    cur.execute('UPDATE expenditure_application SET approved_at=? WHERE id=? AND approved_at IS NULL AND rejected_at IS NULL', (get_current_timestamp(),
-                                                                                                                                application_id))
-    conn.commit()
+    with contextlib.closing(db.get_connection()) as conn:
+        cur = conn.cursor()
+        cur.execute('UPDATE expenditure_application SET approved_at=? WHERE id=? AND approved_at IS NULL AND rejected_at IS NULL',
+                    (get_current_timestamp(), application_id))
+        conn.commit()
 
 
 def reject_application(application_id):
-    conn = db.get_connection()
-    cur = conn.cursor()
-    cur.execute('UPDATE expenditure_application SET rejected_at=? WHERE id=? AND approved_at IS NULL AND rejected_at IS NULL', (get_current_timestamp(),
-                                                                                                                                application_id))
-    conn.commit()
+    with contextlib.closing(db.get_connection()) as conn:
+        cur = conn.cursor()
+        cur.execute('UPDATE expenditure_application SET rejected_at=? WHERE id=? AND approved_at IS NULL AND rejected_at IS NULL',
+                    (get_current_timestamp(), application_id))
+        conn.commit()
 
 if __name__ == '__main__':
 

@@ -1,5 +1,3 @@
-BEGIN TRANSACTION ;
-
 CREATE TABLE IF NOT EXISTS expenditure_application(
   id INTEGER PRIMARY KEY,
   title TEXT NOT NULL,
@@ -22,5 +20,3 @@ CREATE TABLE IF NOT EXISTS expenditure_application_item(
   discount INTEGER NOT NULL DEFAULT 0,
   total INTEGER NOT NULL
 );
-
-COMMIT ;
