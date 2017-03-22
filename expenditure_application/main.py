@@ -28,13 +28,13 @@ class ApplicationHandler(tornado.web.RequestHandler):
 
 class ApplicationApprovalHandler(tornado.web.RequestHandler):
     def get(self, application_id):
-        approve_application(application_id)
+        approve_application(application_id, self.get_argument('ps', default=None))
         self.write('Thanks! :)')
 
 
 class ApplicationRejectionHandler(tornado.web.RequestHandler):
     def get(self, application_id):
-        reject_application(application_id)
+        reject_application(application_id, self.get_argument('ps', default=None))
         self.write('Thanks! :(')
 
 
@@ -99,19 +99,25 @@ def normalize_applications(applications):
             application.rejected_at = convert_datetime_to_client_timezone(convert_timestamp_to_utc_datetime(application.rejected_at))
 
 
-def approve_application(application_id):
+def approve_application(application_id, ps):
     with contextlib.closing(db.get_connection()) as conn:
         cur = conn.cursor()
-        cur.execute('UPDATE expenditure_application SET approved_at=? WHERE id=? AND approved_at IS NULL AND rejected_at IS NULL',
-                    (get_current_timestamp(), application_id))
+        cur.execute('''
+            UPDATE expenditure_application
+            SET approved_at=?, ps=?
+            WHERE id=? AND approved_at IS NULL AND rejected_at IS NULL
+            ''', (get_current_timestamp(), ps, application_id))
         conn.commit()
 
 
-def reject_application(application_id):
+def reject_application(application_id, ps):
     with contextlib.closing(db.get_connection()) as conn:
         cur = conn.cursor()
-        cur.execute('UPDATE expenditure_application SET rejected_at=? WHERE id=? AND approved_at IS NULL AND rejected_at IS NULL',
-                    (get_current_timestamp(), application_id))
+        cur.execute('''
+            UPDATE expenditure_application
+            SET rejected_at=?, ps=?
+            WHERE id=? AND approved_at IS NULL AND rejected_at IS NULL
+            ''', (get_current_timestamp(), ps, application_id))
         conn.commit()
 
 if __name__ == '__main__':

@@ -8,10 +8,10 @@
     table td {
         border: 1px solid grey;
     }
-    p.approved {
+    .approved {
         color: green;
     }
-    p.rejected {
+    .rejected {
         color: red;
     }
 </style>
@@ -32,6 +32,8 @@
             <th>Total</th>
             <th>Apply Date</th>
             <th>Comment</th>
+            <th>State</th>
+            <th>P.S.</th>
         </tr>
         </thead>
         <tbody>
@@ -41,7 +43,17 @@
             <td>{{ application.freight }}</td>
             <td>{{ application.total }}</td>
             <td>{{ application.created_at }}</td>
-            <td>{{ application.comment }}</td>
+            <td>{{ application.comment or 'N/A' }}</td>
+            <td>
+            {% if application.approved_at %}
+                <span class="approved">APPROVED</span>
+            {% elif application.rejected_at %}
+                <span class="rejected">REJECTED</span>
+            {% else %}
+                <span class="waiting">WAITING</span>
+            {% endif %}
+            </td>
+            <td>{{ application.ps or 'N/A' }}</td>
         </tr>
         </tbody>
     </table>
