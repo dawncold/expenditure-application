@@ -18,7 +18,11 @@ class ApplicationsHandler(tornado.web.RequestHandler):
 
 class ApplicationHandler(tornado.web.RequestHandler):
     def get(self, application_id):
-        self.render('application.html', application=get_application(application_id))
+        application = get_application(application_id)
+        if not application:
+            self.send_error(404)
+        else:
+            self.render('application.html', application=application)
 
 
 class ApplicationApprovalHandler(tornado.web.RequestHandler):
@@ -78,7 +82,7 @@ def get_application(application_id):
     application = cur.execute('SELECT * FROM expenditure_application WHERE id=?', (application_id, )).fetchone()
     if application:
         application.line_items = cur.execute('SELECT * FROM expenditure_application_item WHERE application_id=?', (application_id, )).fetchall()
-    normalize_applications([application])
+        normalize_applications([application])
     return application
 
 
