@@ -18,6 +18,7 @@ def make_app():
         debug=True
     )
     return tornado.web.Application([
+        (r'/', tornado.web.RedirectHandler, dict(url='/applications')),
         (r'/applications', ApplicationsHandler),
         (r'/applications/(\d+)', ApplicationHandler),
         (r'/applications/(\d+)/approval', ApplicationApprovalHandler),
