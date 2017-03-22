@@ -17,7 +17,8 @@ def get_connection():
         for idx, col in enumerate(cursor.description):
             d[col[0]] = row[idx]
         return d
-
+    if not os.path.exists(config.DB_FILE_PATH):
+        os.mkdir(config.DB_FILE_PATH)
     conn_ = sqlite3.connect('{}/{}'.format(config.DB_FILE_PATH, config.DB_FILE_NAME))
     conn_.row_factory = dict_factory
     return conn_
