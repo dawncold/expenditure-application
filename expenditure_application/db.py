@@ -7,7 +7,7 @@ import logging
 import contextlib
 import config
 from decimal import Decimal
-from collection import DictObject
+from expenditure_application.collection import DictObject
 
 
 LOGGER = logging.getLogger(__name__)

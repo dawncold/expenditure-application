@@ -3,8 +3,8 @@ from __future__ import unicode_literals, print_function, division
 import logging
 import requests
 from requests.auth import HTTPBasicAuth
-from collection import DictObject
-from config import secure_config
+from expenditure_application.collection import DictObject
+from expenditure_application.config import secure_config
 
 LOGGER = logging.getLogger(__name__)
 

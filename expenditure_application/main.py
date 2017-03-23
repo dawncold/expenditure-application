@@ -7,8 +7,8 @@ import httplib
 import json
 from decimal import Decimal, ROUND_FLOOR
 import tornado.web
-import db
-from collection import DictObject, objectify
+from expenditure_application.db import get_connection, get_cursor
+from expenditure_application.collection import DictObject, objectify
 from utils import convert_timestamp_to_utc_datetime, convert_datetime_to_client_timezone, get_current_timestamp
 
 LOGGER = logging.getLogger(__name__)
@@ -51,8 +51,8 @@ class NewApplicationHandler(tornado.web.RequestHandler):
 
 
 def new_application(title, freight, items, comment=None):
-    with contextlib.closing(db.get_connection()) as conn:
-        cur = db.get_cursor(conn)
+    with contextlib.closing(get_connection()) as conn:
+        cur = get_cursor(conn)
         freight = int(freight)
         freight *= 100
         for item in items:
@@ -83,8 +83,8 @@ def new_application(title, freight, items, comment=None):
 
 
 def list_applications():
-    with contextlib.closing(db.get_connection()) as conn:
-        cur = db.get_cursor(conn)
+    with contextlib.closing(get_connection()) as conn:
+        cur = get_cursor(conn)
         applications = cur.execute('SELECT * FROM expenditure_application').fetchall()
         application_items = cur.execute('SELECT * FROM expenditure_application_item').fetchall()
         application_id2items = {}
@@ -97,7 +97,7 @@ def list_applications():
 
 
 def get_application(application_id):
-    with contextlib.closing(db.get_connection()) as conn:
+    with contextlib.closing(get_connection()) as conn:
         cur = conn.cursor()
         application = cur.execute('SELECT * FROM expenditure_application WHERE id=?', (application_id, )).fetchone()
         if application:
@@ -123,7 +123,7 @@ def normalize_applications(applications):
 
 
 def approve_application(application_id, ps):
-    with contextlib.closing(db.get_connection()) as conn:
+    with contextlib.closing(get_connection()) as conn:
         cur = conn.cursor()
         cur.execute('''
             UPDATE expenditure_application
@@ -134,7 +134,7 @@ def approve_application(application_id, ps):
 
 
 def reject_application(application_id, ps):
-    with contextlib.closing(db.get_connection()) as conn:
+    with contextlib.closing(get_connection()) as conn:
         cur = conn.cursor()
         cur.execute('''
             UPDATE expenditure_application

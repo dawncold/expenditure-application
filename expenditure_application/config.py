@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 from __future__ import unicode_literals, print_function, division
-from collection import DictObject
+from expenditure_application.collection import DictObject
 
 DB_FILE_PATH = 'var'
 DB_FILE_NAME = 'core.db'
