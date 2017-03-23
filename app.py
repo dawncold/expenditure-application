@@ -1,12 +1,18 @@
 # -*- coding: UTF-8 -*-
 from __future__ import unicode_literals, print_function, division
 import os
+import sys
+import logging
 import tornado.ioloop
 import tornado.web
 import jinja2
 from tornado_jinja2 import Jinja2Loader
 from expenditure_application.main import ApplicationsHandler, ApplicationHandler, ApplicationApprovalHandler, \
     ApplicationRejectionHandler, NewApplicationHandler
+
+LOGGER = logging.getLogger('expenditure_application')
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def make_app():
