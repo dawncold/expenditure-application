@@ -1,5 +1,8 @@
 # -*- coding: UTF-8 -*-
 from __future__ import unicode_literals, print_function, division
+import os
+import jinja2
+from tornado_jinja2 import Jinja2Loader
 import time
 import logging
 import contextlib
@@ -7,11 +10,30 @@ import httplib
 import json
 from decimal import Decimal, ROUND_FLOOR
 import tornado.web
+import tornado.template
+from expenditure_application.mail import send_mail
+from expenditure_application.queue import queue
 from expenditure_application.db import get_connection, get_cursor
 from expenditure_application.collection import DictObject, objectify
+from expenditure_application.config import DOMAIN
 from utils import convert_timestamp_to_utc_datetime, convert_datetime_to_client_timezone, get_current_timestamp
 
 LOGGER = logging.getLogger(__name__)
+
+
+def get_template(template_file):
+    template_path = os.path.join(os.path.dirname(__file__), 'templates')
+    jinja2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_path), autoescape=False)
+    jinja2_loader = Jinja2Loader(jinja2_env)
+    return jinja2_loader.load(template_file)
+
+
+@queue.task
+def send_application_mail(application_id):
+    application = get_application(application_id)
+    if not application:
+        return
+    send_mail('费用申请：{}'.format(application.title), get_template('application-in-mail.html').render(application=application, domain=DOMAIN))
 
 
 class ApplicationsHandler(tornado.web.RequestHandler):
@@ -20,7 +42,8 @@ class ApplicationsHandler(tornado.web.RequestHandler):
 
     def post(self, *args, **kwargs):
         application = objectify(json.loads(self.request.body))
-        new_application(application.title, application.freight, application.line_items, comment=application.comment)
+        application_id = new_application(application.title, application.freight, application.line_items, comment=application.comment)
+        send_application_mail.delay(application_id)
         self.set_status(httplib.CREATED)
 
 
@@ -30,7 +53,7 @@ class ApplicationHandler(tornado.web.RequestHandler):
         if not application:
             self.send_error(404)
         else:
-            self.render('application.html', application=application)
+            self.render('application-in-mail.html', application=application, domain=DOMAIN)
 
 
 class ApplicationApprovalHandler(tornado.web.RequestHandler):
@@ -80,6 +103,7 @@ def new_application(title, freight, items, comment=None):
         else:
             LOGGER.info('Create application successfully!')
             conn.commit()
+            return application_id
 
 
 def list_applications():

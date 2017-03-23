@@ -1,0 +1,73 @@
+<div id="application">
+    {% if application.approved_at %}
+        <p style="color: green;">This application has been approved at {{ application.approved_at }}</p>
+    {% endif %}
+    {% if application.rejected_at %}
+        <p style="color: red;">This application has been rejected at {{ application.rejected_at }}</p>
+    {% endif %}
+    <table style="border: 1px solid grey;">
+        <caption>Expenditure Application #{{ application.id }}</caption>
+        <thead>
+        <tr>
+            <th style="border: 1px solid grey">Title</th>
+            <th style="border: 1px solid grey">Subtotal</th>
+            <th style="border: 1px solid grey">Freight</th>
+            <th style="border: 1px solid grey">Total</th>
+            <th style="border: 1px solid grey">Apply Date</th>
+            <th style="border: 1px solid grey">Comment</th>
+            <th style="border: 1px solid grey">State</th>
+            <th style="border: 1px solid grey">P.S.</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td style="border: 1px solid grey">{{ application.title }}</td>
+            <td style="border: 1px solid grey">{{ application.subtotal }}</td>
+            <td style="border: 1px solid grey">{{ application.freight }}</td>
+            <td style="border: 1px solid grey; font-weight: bold; font-size: 20px;color: red;">{{ application.total }}</td>
+            <td style="border: 1px solid grey">{{ application.created_at }}</td>
+            <td style="border: 1px solid grey">{{ application.comment or 'N/A' }}</td>
+            <td style="border: 1px solid grey">
+            {% if application.approved_at %}
+                <span style="color: green;">APPROVED</span>
+            {% elif application.rejected_at %}
+                <span style="color: red;">REJECTED</span>
+            {% else %}
+                <span style="color: gray;">WAITING</span>
+            {% endif %}
+            </td>
+            <td style="border: 1px solid grey">{{ application.ps or 'N/A' }}</td>
+        </tr>
+        </tbody>
+    </table>
+    <table style="border: 1px solid grey;">
+        <caption>Items</caption>
+        <thead>
+        <tr>
+            <th style="border: 1px solid grey">Title</th>
+            <th style="border: 1px solid grey">Price</th>
+            <th style="border: 1px solid grey">Quantity</th>
+            <th style="border: 1px solid grey">Discount</th>
+            <th style="border: 1px solid grey">Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in application.line_items %}
+            <tr>
+                <td style="border: 1px solid grey">
+                    {% if item.link %}
+                        <a href="{{ item.link }}" target="_blank">{{ item.title }}</a>
+                    {% else %}
+                        {{ item.title }}
+                    {% endif %}
+                </td>
+                <td style="border: 1px solid grey">{{ item.price }}</td>
+                <td style="border: 1px solid grey">{{ item.quantity }}</td>
+                <td style="border: 1px solid grey">{{ item.discount }}</td>
+                <td style="border: 1px solid grey">{{ item.total }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <p><a href="http://{{ domain }}/applications/{{ application.id }}">Go to detail page</a></p>
+</div>

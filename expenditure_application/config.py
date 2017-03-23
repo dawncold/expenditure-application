@@ -5,6 +5,7 @@ from expenditure_application.collection import DictObject
 DB_FILE_PATH = 'var'
 DB_FILE_NAME = 'core.db'
 SECURE_CONFIG_FILE = '.config'
+DOMAIN = 'ea.youth2009.org'
 
 secure_config = None
 
