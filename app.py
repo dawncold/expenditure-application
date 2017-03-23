@@ -5,7 +5,8 @@ import tornado.ioloop
 import tornado.web
 import jinja2
 from tornado_jinja2 import Jinja2Loader
-from expenditure_application.main import ApplicationsHandler, ApplicationHandler, ApplicationApprovalHandler, ApplicationRejectionHandler
+from expenditure_application.main import ApplicationsHandler, ApplicationHandler, ApplicationApprovalHandler, \
+    ApplicationRejectionHandler, NewApplicationHandler
 
 
 def make_app():
@@ -20,6 +21,7 @@ def make_app():
     return tornado.web.Application([
         (r'/', tornado.web.RedirectHandler, dict(url='/applications')),
         (r'/applications', ApplicationsHandler),
+        (r'/applications/new', NewApplicationHandler),
         (r'/applications/(\d+)', ApplicationHandler),
         (r'/applications/(\d+)/approval', ApplicationApprovalHandler),
         (r'/applications/(\d+)/rejection', ApplicationRejectionHandler),

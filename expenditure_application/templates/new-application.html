@@ -1,0 +1,98 @@
+<form id="create-application" action="/applications" method="POST">
+    <h2>Create Application</h2>
+    <table>
+        <tbody>
+        <tr>
+            <td>Title</td>
+            <td>
+                <input type="text" name="title"/>
+            </td>
+        </tr>
+        <tr>
+            <td>Comment</td>
+            <td>
+                <textarea name="comment" style="resize: vertical"></textarea>
+            </td>
+        </tr>
+        <tr class="application-item">
+            <td>Item</td>
+            <td>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <input type="text" name="title" placeholder="Title"/>
+                        </td>
+                        <td>
+                            <input type="text" name="link" placeholder="Link"/>
+                        </td>
+                        <td>
+                            <input type="text" name="price" placeholder="Price"/>
+                        </td>
+                        <td>
+                            <input type="text" name="quantity" placeholder="Quantity"/>
+                        </td>
+                        <td>
+                            <input type="text" name="discount" placeholder="Discount"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr id="insert-before">
+            <td></td>
+            <td><a id="add-item" href="javascript:;">More item</a></td>
+        </tr>
+        <tr>
+            <td>Freight</td>
+            <td>
+                <input type="text" name="freight"/>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>
+                <button id="create" type="button">Create</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</form>
+<script>
+    document.addEventListener('DOMContentLoaded', function(event){
+        document.getElementById('add-item').addEventListener('click', function(e){
+            var itemRows = document.getElementsByClassName('application-item');
+            var insertNode = itemRows[itemRows.length - 1].cloneNode(true);
+            var inputs = insertNode.getElementsByTagName('input');
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].value = '';
+            }
+            var tbody = document.getElementsByTagName('tbody')[0];
+            var insertBeforePoint = document.getElementById('insert-before');
+            tbody.insertBefore(insertNode, insertBeforePoint);
+        });
+        document.getElementById('create').addEventListener('click', function(e){
+            var obj = {};
+            obj.title = document.getElementsByName('title')[0].value;
+            obj.comment = document.getElementsByName('comment')[0].value;
+            obj.freight = document.getElementsByName('freight')[0].value;
+            var items = document.getElementsByClassName('application-item');
+            obj.items = [];
+            for (var i = 0; i < items.length; i++) {
+                var _obj = {};
+                _obj.title = items[i].querySelector('[name=title]').value;
+                _obj.link = items[i].querySelector('[name=link]').value;
+                _obj.price = items[i].querySelector('[name=price]').value;
+                _obj.quantity = items[i].querySelector('[name=quantity]').value;
+                obj.items.push(_obj);
+            }
+
+            console.log(obj);
+            console.log(JSON.stringify(obj));
+        });
+        function createApplication(obj) {
+            var request = new XMLHttpRequest();
+        }
+    });
+</script>

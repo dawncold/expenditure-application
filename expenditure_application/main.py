@@ -38,6 +38,11 @@ class ApplicationRejectionHandler(tornado.web.RequestHandler):
         self.write('Thanks! :(')
 
 
+class NewApplicationHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render('new-application.html')
+
+
 def new_application(title, freight, items, comment=None):
     with contextlib.closing(db.get_connection()) as conn:
         cur = db.get_cursor(conn)
