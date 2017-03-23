@@ -6,6 +6,7 @@ import sqlite3
 import logging
 import contextlib
 import config
+from decimal import Decimal
 from collection import DictObject
 
 
@@ -20,6 +21,7 @@ def get_connection():
         return d
     if not os.path.exists(config.DB_FILE_PATH):
         os.mkdir(config.DB_FILE_PATH)
+    sqlite3.register_adapter(Decimal, lambda d: int(d))
     conn_ = sqlite3.connect('{}/{}'.format(config.DB_FILE_PATH, config.DB_FILE_NAME))
     conn_.row_factory = dict_factory
     return conn_

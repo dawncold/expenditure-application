@@ -60,8 +60,8 @@
     </table>
 </form>
 <script>
-    document.addEventListener('DOMContentLoaded', function(event){
-        document.getElementById('add-item').addEventListener('click', function(e){
+    document.addEventListener('DOMContentLoaded', function(){
+        document.getElementById('add-item').addEventListener('click', function(){
             var itemRows = document.getElementsByClassName('application-item');
             var insertNode = itemRows[itemRows.length - 1].cloneNode(true);
             var inputs = insertNode.getElementsByTagName('input');
@@ -72,27 +72,39 @@
             var insertBeforePoint = document.getElementById('insert-before');
             tbody.insertBefore(insertNode, insertBeforePoint);
         });
-        document.getElementById('create').addEventListener('click', function(e){
+        document.getElementById('create').addEventListener('click', function(){
             var obj = {};
             obj.title = document.getElementsByName('title')[0].value;
             obj.comment = document.getElementsByName('comment')[0].value;
             obj.freight = document.getElementsByName('freight')[0].value;
             var items = document.getElementsByClassName('application-item');
-            obj.items = [];
+            obj.line_items = [];
             for (var i = 0; i < items.length; i++) {
                 var _obj = {};
                 _obj.title = items[i].querySelector('[name=title]').value;
                 _obj.link = items[i].querySelector('[name=link]').value;
                 _obj.price = items[i].querySelector('[name=price]').value;
                 _obj.quantity = items[i].querySelector('[name=quantity]').value;
-                obj.items.push(_obj);
+                _obj.discount = items[i].querySelector('[name=discount]').value;
+                obj.line_items.push(_obj);
             }
 
-            console.log(obj);
-            console.log(JSON.stringify(obj));
+            createApplication(obj);
         });
         function createApplication(obj) {
-            var request = new XMLHttpRequest();
+            var req = new XMLHttpRequest();
+            req.open('POST', '/applications', true);
+            req.onreadystatechange = function () {
+                if (req.readyState == XMLHttpRequest.DONE) {
+                    if (req.status != 201) {
+                        alert(req.responseText);
+                    } else {
+                        alert('Create application successfully!');
+                        window.location.href = '/applications';
+                    }
+                }
+            };
+            req.send(JSON.stringify(obj));
         }
     });
 </script>

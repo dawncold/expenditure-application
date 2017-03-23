@@ -3,10 +3,12 @@ from __future__ import unicode_literals, print_function, division
 import time
 import logging
 import contextlib
+import httplib
+import json
 from decimal import Decimal, ROUND_FLOOR
 import tornado.web
 import db
-from collection import DictObject
+from collection import DictObject, objectify
 from utils import convert_timestamp_to_utc_datetime, convert_datetime_to_client_timezone, get_current_timestamp
 
 LOGGER = logging.getLogger(__name__)
@@ -15,6 +17,11 @@ LOGGER = logging.getLogger(__name__)
 class ApplicationsHandler(tornado.web.RequestHandler):
     def get(self):
         self.render('applications.html', applications=list_applications())
+
+    def post(self, *args, **kwargs):
+        application = objectify(json.loads(self.request.body))
+        new_application(application.title, application.freight, application.line_items, comment=application.comment)
+        self.set_status(httplib.CREATED)
 
 
 class ApplicationHandler(tornado.web.RequestHandler):
@@ -46,14 +53,21 @@ class NewApplicationHandler(tornado.web.RequestHandler):
 def new_application(title, freight, items, comment=None):
     with contextlib.closing(db.get_connection()) as conn:
         cur = db.get_cursor(conn)
-        subtotal = sum(item.total for item in items)
+        freight = int(freight)
+        freight *= 100
         for item in items:
+            item.quantity = int(item.quantity)
+            item.price = Decimal(item.price)
+            item.discount = Decimal(item.discount)
+            item.price *= 100
+            item.discount *= 100
             item.total = item.price * item.quantity - item.discount
+        subtotal = sum(item.total for item in items)
         try:
             cur.execute('''
                 INSERT INTO expenditure_application(title, subtotal, freight, comment, created_at)
                 VALUES (?, ?, ?, ?, ?)
-                ''', (title, subtotal, int(freight), comment, int(time.time())))
+                ''', (title, subtotal, freight, comment, int(time.time())))
             application_id = cur.lastrowid
             values = tuple((application_id, item.title, item.link, item.price, item.quantity, item.discount, item.total) for item in items)
             cur.executemany('''
@@ -102,6 +116,10 @@ def normalize_applications(applications):
             application.approved_at = convert_datetime_to_client_timezone(convert_timestamp_to_utc_datetime(application.approved_at))
         if application.rejected_at:
             application.rejected_at = convert_datetime_to_client_timezone(convert_timestamp_to_utc_datetime(application.rejected_at))
+        for item in application.line_items:
+            item.price = (Decimal(item.price) / 100).quantize(Decimal('0.01'), rounding=ROUND_FLOOR)
+            item.discount = (Decimal(item.discount) / 100).quantize(Decimal('0.01'), rounding=ROUND_FLOOR)
+            item.total = (Decimal(item.total) / 100).quantize(Decimal('0.01'), rounding=ROUND_FLOOR)
 
 
 def approve_application(application_id, ps):
