@@ -22,7 +22,7 @@ def make_app():
     settings = dict(
         template_loader=jinja2_loader,
         static_path=os.path.join(os.path.dirname(__file__), 'static'),
-        debug=True
+        debug=False
     )
     return tornado.web.Application([
         (r'/', tornado.web.RedirectHandler, dict(url='/applications')),
