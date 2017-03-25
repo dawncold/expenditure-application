@@ -82,7 +82,7 @@ class ApplicationHandler(tornado.web.RequestHandler):
         if not application:
             self.send_error(404)
         else:
-            self.render('application-in-mail.html', application=application, domain=DOMAIN)
+            self.render('application.html', application=application, domain=DOMAIN)
 
 
 class ApplicationApprovalHandler(tornado.web.RequestHandler):
