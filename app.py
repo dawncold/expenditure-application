@@ -8,7 +8,7 @@ import tornado.web
 import jinja2
 from tornado_jinja2 import Jinja2Loader
 from expenditure_application.main import ApplicationsHandler, ApplicationHandler, ApplicationApprovalHandler, \
-    ApplicationRejectionHandler, NewApplicationHandler
+    ApplicationRejectionHandler, NewApplicationHandler, MailNotificationHandler
 
 LOGGER = logging.getLogger('expenditure_application')
 LOGGER.setLevel(logging.DEBUG)
@@ -26,6 +26,7 @@ def make_app():
     )
     return tornado.web.Application([
         (r'/', tornado.web.RedirectHandler, dict(url='/applications')),
+        (r'/notify', MailNotificationHandler),
         (r'/applications', ApplicationsHandler),
         (r'/applications/new', NewApplicationHandler),
         (r'/applications/(\d+)', ApplicationHandler),

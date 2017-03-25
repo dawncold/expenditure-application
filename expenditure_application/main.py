@@ -33,7 +33,36 @@ def send_application_mail(application_id):
     application = get_application(application_id)
     if not application:
         return
-    send_mail('费用申请：{}'.format(application.title), get_template('application-in-mail.html').render(application=application, domain=DOMAIN))
+    send_mail('费用申请：{}#{}'.format(application.title, application.id), get_template('application-in-mail.html').render(application=application, domain=DOMAIN))
+
+
+class MailNotificationHandler(tornado.web.RequestHandler):
+    def post(self, *args, **kwargs):
+        subject = self.get_argument('subject')
+        try:
+            application_id = int(subject.split('#')[1])
+        except Exception:
+            LOGGER.exception('do not support subject format: {}'.format(subject))
+            return
+        else:
+            is_rejected = is_approved = False
+            ps = None
+            reply = self.get_argument('stripped-text')
+            lines = [line for line in reply.split('\n') if line.strip()]
+            if any(e in lines[0] for e in ('不同意', '拒绝', 'reject')):
+                is_rejected = True
+            elif any(e in lines[0] for e in ('同意', '允许', 'approve')):
+                is_approved = True
+            else:
+                LOGGER.info('unknown command: {}'.format(lines[0]))
+            if len(lines) > 1:
+                ps = '\n'.join(lines[1:])
+            if not is_rejected and not is_approved:
+                return
+            if is_rejected:
+                reject_application(application_id, ps=ps)
+            if is_approved:
+                approve_application(application_id, ps=ps)
 
 
 class ApplicationsHandler(tornado.web.RequestHandler):
@@ -53,7 +82,7 @@ class ApplicationHandler(tornado.web.RequestHandler):
         if not application:
             self.send_error(404)
         else:
-            self.render('application.html', application=application, domain=DOMAIN)
+            self.render('application-in-mail.html', application=application, domain=DOMAIN)
 
 
 class ApplicationApprovalHandler(tornado.web.RequestHandler):
@@ -146,7 +175,7 @@ def normalize_applications(applications):
             item.total = (Decimal(item.total) / 100).quantize(Decimal('0.01'), rounding=ROUND_FLOOR)
 
 
-def approve_application(application_id, ps):
+def approve_application(application_id, ps=None):
     with contextlib.closing(get_connection()) as conn:
         cur = conn.cursor()
         cur.execute('''
@@ -157,7 +186,7 @@ def approve_application(application_id, ps):
         conn.commit()
 
 
-def reject_application(application_id, ps):
+def reject_application(application_id, ps=None):
     with contextlib.closing(get_connection()) as conn:
         cur = conn.cursor()
         cur.execute('''
