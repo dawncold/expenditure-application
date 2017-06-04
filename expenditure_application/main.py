@@ -9,16 +9,18 @@ import contextlib
 import httplib
 import json
 from decimal import Decimal, ROUND_FLOOR
+from tasktiger import TaskTiger
 import tornado.web
 import tornado.template
 from expenditure_application.mail import send_mail
-from expenditure_application.queue import queue
 from expenditure_application.db import get_connection, get_cursor
 from expenditure_application.collection import DictObject, objectify
 from expenditure_application.config import DOMAIN
 from utils import convert_timestamp_to_utc_datetime, convert_datetime_to_client_timezone, get_current_timestamp
 
 LOGGER = logging.getLogger(__name__)
+
+tiger = TaskTiger()
 
 
 def get_template(template_file):
@@ -28,7 +30,7 @@ def get_template(template_file):
     return jinja2_loader.load(template_file)
 
 
-@queue.task
+@tiger.task(queue='mail')
 def send_application_mail(application_id):
     application = get_application(application_id)
     if not application:

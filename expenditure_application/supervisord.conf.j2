@@ -1,0 +1,53 @@
+[inet_http_server]
+port = 127.0.0.1:9001
+
+[supervisord]
+logfile = {{ log_path }}/supervisord.log
+logfile_maxbytes = 50MB
+logfile_backups=10
+loglevel = info
+pidfile = {{ var_path }}/supervisord.pid
+nodaemon = false
+minfds = 1024
+minprocs = 200
+umask = 022
+identifier = supervisor
+directory = {{ var_path }}
+nocleanup = true
+childlogdir = {{ log_path }}
+strip_ansi = false
+
+[supervisorctl]
+serverurl = http://localhost:9001
+
+{% for program in programs %}
+[program:{{ program.name }}]
+command={{ program.command }}
+process_name=%(program_name)s
+numprocs=1
+directory={{ home_path }}
+umask=022
+priority=999
+autostart=true
+autorestart=unexpected
+startsecs=10
+startretries=3
+exitcodes=0,2
+stopsignal=TERM
+stopwaitsecs=10
+stopasgroup=false
+killasgroup=false
+redirect_stderr=false
+stdout_logfile={{ log_path }}/{{ program.name }}-stdout.log
+stdout_logfile_maxbytes=1MB
+stdout_logfile_backups=10
+stdout_capture_maxbytes=1MB
+stdout_events_enabled=false
+stderr_logfile={{ log_path }}/{{ program.name }}-stderr.log
+stderr_logfile_maxbytes=1MB
+stderr_logfile_backups=10
+stderr_capture_maxbytes=1MB
+stderr_events_enabled=false
+serverurl=AUTO
+environment=PYTHONPATH={{ home_path }}
+{% endfor %}
