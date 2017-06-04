@@ -45,10 +45,10 @@ def generate_supervisord_config():
         f.write(redis_config)
 
     programs = [
-        DictObject(name='redis', command='redis-server {}/redis.conf'.format(etc_path)),
+        DictObject(name='redis', command='redis-server {}/redis.conf'.format(etc_path), priority=0),
         DictObject(name='worker',
                    command='{}/.env/bin/tasktiger -q mail -m expenditure_application.main'.format(home_path)),
-        DictObject(name='tasktiger-admin', command='{}/.env/bin/tasktiger-admin'.format(home_path)),
+        DictObject(name='tasktiger-admin', command='{}/.env/bin/python ta.py'.format(home_path)),
         DictObject(name='app', command='{}/.env/bin/python app.py'.format(home_path))
     ]
     config_content = env.get_template('supervisord.conf.j2').render(var_path=var_path,
