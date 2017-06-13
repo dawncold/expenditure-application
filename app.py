@@ -17,7 +17,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 def make_app():
     template_path = os.path.join(os.path.dirname(__file__), 'expenditure_application/templates')
-    jinja2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_path), autoescape=False)
+    jinja2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_path), autoescape=True)
     jinja2_loader = Jinja2Loader(jinja2_env)
     settings = dict(
         template_loader=jinja2_loader,
