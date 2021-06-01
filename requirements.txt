@@ -20,6 +20,6 @@ tasktiger==0.9.1
 tasktiger-admin==0.2.2
 tornado==4.5.1
 tornado-jinja2==0.2.4
-urllib3==1.21.1
+urllib3==1.26.5
 Werkzeug==0.12.2
 WTForms==2.1
